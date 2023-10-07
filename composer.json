@@ -1,0 +1,23 @@
+{
+  "name": "xman12/persistent-request",
+  "description": "Test",
+  "minimum-stability": "stable",
+  "license": "LGPL-3.0-or-later",
+  "type": "library",
+  "authors": [
+    {
+      "name": "xman12",
+      "email": "xman12@mail.ru"
+    }
+  ],
+  "require": {
+    "php": "^7.4",
+    "ext-json": "*",
+    "ext-iconv": "*"
+  },
+  "autoload": {
+    "psr-4": {
+      "PersistentRequest\\": "src/"
+    }
+  }
+}
