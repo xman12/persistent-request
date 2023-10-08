@@ -26,14 +26,13 @@ Add command:
 > $schedule->command(RetryRequestCommand::class)->everyMinute();
 
 ### Example for create persistent request
->       $requestGuzzle = new Request('get', 'https://google.com');
->       $requestDTO = new RequestDTO($requestGuzzle,  SuccessEvent::class, function (Response $response) {
+>        $requestService = app(\PersistentRequest\Services\RequestServiceInterface::class);
+>        $requestGuzzle = new \GuzzleHttp\Psr7\Request('get', 'https://xman12.video-chat.site/json-test');
+>        $requestDTO = new \PersistentRequest\DTO\RequestDTO($requestGuzzle, \PersistentRequest\Events\SuccessEvent::class, function (\GuzzleHttp\Psr7\Response $response) {
 >            if (200 !== $response->getStatusCode()) {
 >                throw new \Exception('error processed');
->            } else {
->                dispatch(new Event());
 >            }
 >        });
->        $this->requestService->execute($requestDTO);
-> 
+>
+>        $requestService->execute($requestDTO); 
 
