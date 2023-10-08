@@ -17,6 +17,9 @@ after library has been installed, publish its configuration file using:
 
 > php artisan vendor:publish --provider="PersistentRequest\Providers\PersistentRequestServiceProvider"
 
+or add the following providers in config/app.php:
+>'providers' => [PersistentRequest\ServiceProvider::class]
+
 Now need create table, call command:
 > php artisan persistent-request:create-table
 
