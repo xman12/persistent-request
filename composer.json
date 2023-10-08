@@ -4,10 +4,17 @@
   "minimum-stability": "stable",
   "license": "LGPL-3.0-or-later",
   "type": "library",
+  "keywords": [
+    "laravel",
+    "guzzle",
+    "persistent-request",
+    "request"
+  ],
   "authors": [
     {
       "name": "xman12",
-      "email": "xman12@mail.ru"
+      "email": "xman12@mail.ru",
+      "role": "Developer"
     }
   ],
   "require": {
@@ -19,6 +26,13 @@
   "autoload": {
     "psr-4": {
       "PersistentRequest\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "PersistentRequest\\Providers\\PersistentRequestServiceProvider"
+      ]
     }
   }
 }
