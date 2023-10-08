@@ -43,4 +43,16 @@ class RequestDTO
     {
         return $this->request;
     }
+
+    public function __serialize(): array
+    {
+        if (null !== $this->extendedLogic) {
+            $this->extendedLogic = (new SerializableClosure($this->extendedLogic));
+        }
+        return [
+            $this->request,
+            $this->event,
+            $this->extendedLogic
+        ];
+    }
 }

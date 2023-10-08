@@ -27,7 +27,7 @@ class RequestService implements RequestServiceInterface
      * @inheritdoc
      * @throws Throwable
      */
-    public function execute(RequestDTO $request): void
+    public function execute(RequestDTO $request, bool $showThrowable = false): void
     {
         // save to db request
         $requestModel = $this->saveRequest($request);
@@ -37,7 +37,9 @@ class RequestService implements RequestServiceInterface
                 $requestModel->delete();
             }
         }catch (Throwable $exception) {
-            
+            if (true === $showThrowable) {
+                throw $exception;
+            }
         }
     }
 
@@ -95,7 +97,6 @@ class RequestService implements RequestServiceInterface
      */
     protected function saveRequest(RequestDTO $requestDTO): RequstModel
     {
-        $requestDTO->extendedLogic = (new SerializableClosure($requestDTO->extendedLogic));
         $requestModel = clone $this->requstModel;
         $requestModel->serialize_data = serialize($requestDTO);
         $requestModel->count_request = 1;

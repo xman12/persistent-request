@@ -11,9 +11,10 @@ interface RequestServiceInterface
      * Execute request 
      * 
      * @param RequestDTO $request
+     * @param bool $showThrowable
      * @return void
      */
-    public function execute(RequestDTO $request): void;
+    public function execute(RequestDTO $request, bool $showThrowable = false): void;
 
     /**
      * Retry request from database 
