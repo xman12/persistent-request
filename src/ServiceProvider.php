@@ -1,6 +1,6 @@
 <?php
 
-namespace PersistentRequest\Providers;
+namespace PersistentRequest;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\ServiceProvider as AbstractServiceProvider;

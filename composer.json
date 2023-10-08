@@ -25,7 +25,7 @@
   },
   "autoload": {
     "psr-4": {
-      "PersistentRequest\\": "src"
+      "PersistentRequest\\": "src/"
     }
   },
   "config": {
@@ -36,7 +36,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "PersistentRequest\\Providers\\ServiceProvider"
+        "PersistentRequest\\ServiceProvider"
       ]
     }
   }
