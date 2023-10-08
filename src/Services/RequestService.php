@@ -8,6 +8,7 @@ use PersistentRequest\DTO\RequestDTO;
 use PersistentRequest\Events\SuccessEvent;
 use PersistentRequest\Models\RequstModel;
 use Throwable;
+use Laravel\SerializableClosure\SerializableClosure;
 
 class RequestService implements RequestServiceInterface
 {
@@ -22,30 +23,85 @@ class RequestService implements RequestServiceInterface
         $this->requstModel = $requstModel;
     }
 
-    public function execute(RequestDTO $request)
+    /**
+     * @inheritdoc
+     * @throws Throwable
+     */
+    public function execute(RequestDTO $request): void
     {
         // save to db request
+        $requestModel = $this->saveRequest($request);
         try {
-//            $this->saveRequest($request);
-            $response = $this->client->send($request->request);
-        }catch (Throwable $exception)
-        {
-
-        } finally {
-            if (null !== $response) {
-                $request->extendedLogic($response);
+            if (true === $this->sendRequest($request)) {
+                // delete row
+                $requestModel->delete();
             }
+        }catch (Throwable $exception) {
+            
         }
-
-        $this->dispatcher->dispatch(new $request->event($response));
     }
 
-    protected function saveRequest(RequestDTO $requestDTO)
+    /**
+     * @inheritdoc
+     * @throws Throwable
+     */
+    public function retryExecute(RequstModel $requestModel, RequestDTO $request): void
     {
+        $requestModel->increment('count_request');
+        try {
+            if (true === $this->sendRequest($request)) {
+                // delete row
+                $requestModel->delete();
+            }
+        }catch (Throwable $exception) {
+            
+        }
+    }
+
+    /**
+     * Send request with execute extended logic and dispatch event
+     *
+     * @param RequestDTO $request
+     * @return bool
+     * @throws Throwable
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     * @throws \Laravel\SerializableClosure\Exceptions\PhpVersionNotSupportedException
+     */
+    protected function sendRequest(RequestDTO $request): bool
+    {
+        try {
+            $response = $this->client->send($request->request);
+        } catch (Throwable $exception) {
+            throw $exception;
+        } finally {
+            if (isset($response)) {
+                $extendedLogic = $request->extendedLogic;
+                if (null !== $extendedLogic) {
+                    $extendedLogic($response);
+                }
+            }
+        }
+        $this->dispatcher->dispatch(new $request->event($response));
+
+        return true;
+    }
+
+    /**
+     * Save request data
+     *
+     * @param RequestDTO $requestDTO
+     * @return RequstModel
+     * @throws \Laravel\SerializableClosure\Exceptions\PhpVersionNotSupportedException
+     */
+    protected function saveRequest(RequestDTO $requestDTO): RequstModel
+    {
+        $requestDTO->extendedLogic = (new SerializableClosure($requestDTO->extendedLogic));
         $requestModel = clone $this->requstModel;
         $requestModel->serialize_data = serialize($requestDTO);
         $requestModel->count_request = 1;
         $requestModel->save();
+
+        return $requestModel;
     }
 
 }

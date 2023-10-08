@@ -4,6 +4,7 @@ namespace PersistentRequest\Providers;
 
 use GuzzleHttp\Client;
 use Illuminate\Support\ServiceProvider;
+use PersistentRequest\Commands\RetryRequestCommand;
 use PersistentRequest\Models\RequstModel;
 use PersistentRequest\Services\RequestService;
 use PersistentRequest\Services\RequestServiceInterface;
@@ -18,5 +19,10 @@ class PersistentRequestServiceProvider extends ServiceProvider
             $app->make('events'),
             $app->make(RequstModel::class)
         ));
+        
+        // register commands
+        $this->commands([
+            RetryRequestCommand::class
+        ]);
     }
 }

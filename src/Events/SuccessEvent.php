@@ -4,7 +4,7 @@ namespace PersistentRequest\Events;
 
 use Psr\Http\Message\ResponseInterface;
 
-class SuccessEvent
+final class SuccessEvent
 {
     protected ResponseInterface $response;
     
