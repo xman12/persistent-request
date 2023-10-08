@@ -7,7 +7,7 @@ When to create a fault-tolerant request.
 - php >=7.4
 - guzzlehttp/guzzle >=6.3
 - laravel/framework >=7.0
-- laravel/serializable-closure "^1.3"
+- laravel/serializable-closure "^1.*"
 
 ## Installation
 
@@ -15,7 +15,7 @@ When to create a fault-tolerant request.
 
 after library has been installed, publish its configuration file using:
 
-> php artisan vendor:publish --provider="PersistentRequest\Providers\PersistentRequestServiceProvider"
+> php artisan vendor:publish --provider="PersistentRequest\ServiceProvider"
 
 or add the following providers in config/app.php:
 >'providers' => [PersistentRequest\ServiceProvider::class]
