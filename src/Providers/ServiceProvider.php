@@ -3,13 +3,13 @@
 namespace PersistentRequest\Providers;
 
 use GuzzleHttp\Client;
-use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\ServiceProvider as AbstractServiceProvider;
 use PersistentRequest\Commands\{CreateTableCommand, RetryRequestCommand};
 use PersistentRequest\Models\RequstModel;
 use PersistentRequest\Services\{RequestService, RequestServiceInterface};
 use \Illuminate\Contracts\Foundation\Application;
 
-class PersistentRequestServiceProvider extends ServiceProvider
+class ServiceProvider extends AbstractServiceProvider
 {
     public function register()
     {
