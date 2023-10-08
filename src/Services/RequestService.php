@@ -5,7 +5,6 @@ namespace PersistentRequest\Services;
 use GuzzleHttp\ClientInterface;
 use Illuminate\Events\Dispatcher;
 use PersistentRequest\DTO\RequestDTO;
-use PersistentRequest\Events\SuccessEvent;
 use PersistentRequest\Models\RequstModel;
 use Throwable;
 use Laravel\SerializableClosure\SerializableClosure;
@@ -36,7 +35,7 @@ class RequestService implements RequestServiceInterface
                 // delete row
                 $requestModel->delete();
             }
-        }catch (Throwable $exception) {
+        } catch (Throwable $exception) {
             if (true === $showThrowable) {
                 throw $exception;
             }
@@ -55,8 +54,8 @@ class RequestService implements RequestServiceInterface
                 // delete row
                 $requestModel->delete();
             }
-        }catch (Throwable $exception) {
-            
+        } catch (Throwable $exception) {
+
         }
     }
 

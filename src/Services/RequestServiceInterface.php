@@ -5,6 +5,9 @@ namespace PersistentRequest\Services;
 use PersistentRequest\DTO\RequestDTO;
 use PersistentRequest\Models\RequstModel;
 
+/**
+ * Service for execute requests
+ */
 interface RequestServiceInterface
 {
     /**

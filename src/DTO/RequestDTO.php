@@ -2,7 +2,6 @@
 
 namespace PersistentRequest\DTO;
 
-use PersistentRequest\Events\SuccessEvent;
 use Psr\Http\Message\RequestInterface;
 use Laravel\SerializableClosure\SerializableClosure;
 
@@ -12,7 +11,7 @@ class RequestDTO
     /** @var null|?\Closure|SerializableClosure */
     public $extendedLogic;
     public string $event;
-    
+
     public function __construct(RequestInterface $request, string $event, $extendedLogic = null)
     {
         $this->request = $request;
