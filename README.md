@@ -9,6 +9,9 @@ When to create a fault-tolerant request.
 - laravel/framework >=7.0
 - laravel/serializable-closure "^1.*"
 
+## Flow library
+![flow](flow.png)
+
 ## Installation
 
 > composer require xman12/persistent-request
