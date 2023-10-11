@@ -17,7 +17,7 @@ interface RequestServiceInterface
      * @param bool $showThrowable
      * @return void
      */
-    public function execute(RequestDTO $request, bool $showThrowable = false): void;
+    public function execute(RequestDTO $request): bool;
 
     /**
      * Retry request from database 
@@ -26,5 +26,5 @@ interface RequestServiceInterface
      * @param RequestDTO $request
      * @return void
      */
-    public function retryExecute(RequstModel $requestModel, RequestDTO $request): void;
+    public function retryExecute(RequestDTO $request): bool;
 }

@@ -3,8 +3,10 @@
 namespace PersistentRequest\Services;
 
 use GuzzleHttp\ClientInterface;
-use Illuminate\Events\Dispatcher;
+use Illuminate\Contracts\Bus\Dispatcher;
 use PersistentRequest\DTO\RequestDTO;
+use PersistentRequest\Events\RetryRequestEvent;
+use PersistentRequest\Jobs\RetryRequestJob;
 use PersistentRequest\Models\RequstModel;
 use Throwable;
 use Laravel\SerializableClosure\SerializableClosure;
@@ -12,33 +14,30 @@ use Laravel\SerializableClosure\SerializableClosure;
 class RequestService implements RequestServiceInterface
 {
     protected ClientInterface $client;
-    protected Dispatcher $dispatcher;
-    protected RequstModel $requstModel;
+    protected Dispatcher $dispatcherJob;
+    protected \Illuminate\Events\Dispatcher $dispatcher;
 
-    public function __construct(ClientInterface $client, Dispatcher $dispatcher, RequstModel $requstModel)
+    public function __construct(
+        ClientInterface $client,
+        Dispatcher $dispatcherJob,
+        \Illuminate\Events\Dispatcher $dispatcher
+    )
     {
         $this->client = $client;
+        $this->dispatcherJob = $dispatcherJob;
         $this->dispatcher = $dispatcher;
-        $this->requstModel = $requstModel;
     }
 
     /**
      * @inheritdoc
      * @throws Throwable
      */
-    public function execute(RequestDTO $request, bool $showThrowable = false): void
+    public function execute(RequestDTO $request): bool
     {
-        // save to db request
-        $requestModel = $this->saveRequest($request);
         try {
-            if (true === $this->sendRequest($request)) {
-                // delete row
-                $requestModel->delete();
-            }
+            return $this->sendRequest($request);
         } catch (Throwable $exception) {
-            if (true === $showThrowable) {
-                throw $exception;
-            }
+            return false;
         }
     }
 
@@ -46,16 +45,14 @@ class RequestService implements RequestServiceInterface
      * @inheritdoc
      * @throws Throwable
      */
-    public function retryExecute(RequstModel $requestModel, RequestDTO $request): void
+    public function retryExecute(RequestDTO $request): bool
     {
-        $requestModel->increment('count_request');
+        $request->setCurrentTime(time());
         try {
-            if (true === $this->sendRequest($request)) {
-                // delete row
-                $requestModel->delete();
-            }
+            return $this->sendRequest($request);
         } catch (Throwable $exception) {
-
+            dump($exception);
+            return false;
         }
     }
 
@@ -71,37 +68,45 @@ class RequestService implements RequestServiceInterface
     protected function sendRequest(RequestDTO $request): bool
     {
         try {
-            $response = $this->client->send($request->request);
+            $response = $this->client->send($request->getRequest());
         } catch (Throwable $exception) {
-            throw $exception;
+            $this->dispatchRetryJob($request, $exception);
+
+            return false;
         } finally {
             if (isset($response)) {
-                $extendedLogic = $request->extendedLogic;
+                $extendedLogic = $request->getExtendedLogic();
                 if (null !== $extendedLogic) {
-                    $extendedLogic($response);
+                    try {
+                        $extendedLogic($response);
+                    } catch (Throwable $exception) {
+                        $this->dispatchRetryJob($request, $exception);
+
+                        return false;
+                    }
                 }
             }
         }
-        $this->dispatcher->dispatch(new $request->event($response));
+
+        $event = $request->getEvent();
+        $this->dispatcher->dispatch(new $event($response));
 
         return true;
     }
 
     /**
-     * Save request data
-     *
-     * @param RequestDTO $requestDTO
-     * @return RequstModel
-     * @throws \Laravel\SerializableClosure\Exceptions\PhpVersionNotSupportedException
+     * @param RequestDTO $request
+     * @param Throwable $exception
+     * @return void
      */
-    protected function saveRequest(RequestDTO $requestDTO): RequstModel
+    private function dispatchRetryJob(RequestDTO $request, Throwable $exception): void
     {
-        $requestModel = clone $this->requstModel;
-        $requestModel->serialize_data = serialize($requestDTO);
-        $requestModel->count_request = 1;
-        $requestModel->save();
+        $request->setAttemps($request->getAttemps() + 1);
+        $request->setException($exception);
 
-        return $requestModel;
+        $event = new RetryRequestEvent($request);
+        $delay = $request->getCurrentTime() + $request->getSleepSecond() - time();
+        $job = (new RetryRequestJob($event))->delay($delay);
+        $this->dispatcherJob->dispatch($job);
     }
-
 }
