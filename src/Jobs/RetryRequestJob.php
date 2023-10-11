@@ -3,8 +3,10 @@
 namespace PersistentRequest\Jobs;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use PersistentRequest\Events\DeleteRequestEvent;
 use PersistentRequest\Events\RetryRequestEvent;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\SerializesModels;
@@ -24,7 +26,7 @@ class RetryRequestJob implements ShouldQueue
         $this->retryRequestEvent = $retryRequestEvent;
     }
 
-    public function handle(RequestServiceInterface $requestService)
+    public function handle(RequestServiceInterface $requestService, Dispatcher $dispatcher)
     {
         $requestDTO = $this->retryRequestEvent->getRequestDTO();
         if ((null === $requestDTO->getMaxAttemps())
@@ -37,6 +39,7 @@ class RetryRequestJob implements ShouldQueue
                 return true;
             }
         } else {
+            $dispatcher->dispatch(new DeleteRequestEvent($requestDTO));
             $this->delete();
         }
     }
