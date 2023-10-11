@@ -29,17 +29,13 @@ or add the following providers in config/app.php:
 'providers' => [PersistentRequest\ServiceProvider::class]
 ```
 
-Now need create table, call command:
+Now need start queue work process invalid requests, call command:
 ```
-php artisan persistent-request:create-table
+php artisan queue:work
 ```
 
-For auto call down request need configuration [Laravel schedule](https://laravel.com/docs/10.x/scheduling)
-
-Add command:
-```
-$schedule->command(RetryRequestCommand::class)->everyMinute();
-```
+>If request will reach limit attempt when request delete from queue and dispatch 
+event DeleteRequestEvent, which you can processed
 
 ## Example for create simple persistent request
 ```
@@ -49,7 +45,9 @@ $requestService = app(\PersistentRequest\Services\RequestServiceInterface::class
 $requestGuzzle = new \GuzzleHttp\Psr7\Request('get', 'https://google.com');
 // create comfortable DTO for transfer to service, 
 // first argument instance of guzzle request, second name event class, which will be call after success request
-$requestDTO = new \PersistentRequest\DTO\RequestDTO($requestGuzzle, \PersistentRequest\Events\SuccessEvent::class);
+// third argument it'sleep seconds, number second after need try again do send request
+// fourth argument, number try for send request
+$requestDTO = new \PersistentRequest\DTO\RequestDTO($requestGuzzle, \PersistentRequest\Events\SuccessEvent::class, 30, 5);
 // execute request, save into db serialize instance of RequestDTO, if request is success then row will be delete
 $requestService->execute($requestDTO); 
 ```
@@ -61,14 +59,21 @@ $requestService = app(\PersistentRequest\Services\RequestServiceInterface::class
 $requestGuzzle = new \GuzzleHttp\Psr7\Request('get', 'https://google.com');
 // create comfortable DTO for transfer to service, 
 // first argument instance of guzzle request, second name event class, which will be call after success request
-// third argrument anonymous function, inside of function we can do businec logic your application, dispatch events etc.
-$requestDTO = new \PersistentRequest\DTO\RequestDTO($requestGuzzle, \PersistentRequest\Events\SuccessEvent::class, function (\GuzzleHttp\Psr7\Response $response) {
+// third argument it'sleep seconds, number second after need try again do send request
+// fourth argument, number try for send request
+// fifth argrument anonymous function, inside of function we can do businec logic your application, dispatch events etc.
+$requestDTO = new \PersistentRequest\DTO\RequestDTO(
+    $requestGuzzle, 
+    \PersistentRequest\Events\SuccessEvent::class, 
+    30,
+    5
+    function (\GuzzleHttp\Psr7\Response $response) {
     //here we can do businec logic your application
     // if need then request try again, just throw exception
     if (200 !== $response->getStatusCode()) {
         throw new \Exception('error processed');
     }
 });
-// execute request, save into db serialize instance of RequestDTO, if request is success then row will be delete
+// execute request
 $requestService->execute($requestDTO);
 ```

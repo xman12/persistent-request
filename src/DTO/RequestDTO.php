@@ -32,9 +32,9 @@ class RequestDTO
     public function __construct(
         RequestInterface $request,
         string $event,
-        int $sleepSecond,
-        $extendedLogic = null,
-        $maxAttemps = null
+        int $sleepSecond = 60,
+        $maxAttemps = null,
+        $extendedLogic = null
     )
     {
         $this->request = $request;
