@@ -18,8 +18,8 @@ class RequestService implements RequestServiceInterface
     protected \Illuminate\Events\Dispatcher $dispatcher;
 
     public function __construct(
-        ClientInterface $client,
-        Dispatcher $dispatcherJob,
+        ClientInterface               $client,
+        Dispatcher                    $dispatcherJob,
         \Illuminate\Events\Dispatcher $dispatcher
     )
     {
@@ -51,9 +51,38 @@ class RequestService implements RequestServiceInterface
         try {
             return $this->sendRequest($request);
         } catch (Throwable $exception) {
-            dump($exception);
             return false;
         }
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setClient(ClientInterface $client): RequestServiceInterface
+    {
+        $this->client = $client;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setDispatcher(\Illuminate\Events\Dispatcher $dispatcher): self
+    {
+        $this->dispatcher = $dispatcher;
+
+        return $this;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function setDispatcherJob(Dispatcher $dispatcherJob): self
+    {
+        $this->dispatcherJob = $dispatcherJob;
+
+        return $this;
     }
 
     /**
@@ -88,8 +117,10 @@ class RequestService implements RequestServiceInterface
             }
         }
 
-        $event = $request->getEvent();
-        $this->dispatcher->dispatch(new $event($response));
+        if (isset($response)) {
+            $event = $request->getEvent();
+            $this->dispatcher->dispatch(new $event($response));
+        }
 
         return true;
     }
